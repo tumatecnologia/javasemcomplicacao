@@ -1,4 +1,3 @@
-cat <<EOF > src/pages.config.js
 import Curso from './pages/Curso';
 import Inicio from './pages/Inicio';
 import Premium from './pages/Premium';
@@ -19,4 +18,3 @@ export const pagesConfig = {
     Pages: PAGES,
     Layout: __Layout,
 };
-EOF

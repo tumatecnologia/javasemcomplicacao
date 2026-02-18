@@ -1,22 +1,21 @@
-const ADMIN_ID = "18216074816";
+import { supabase } from "@/lib/supabase";
 
-export const checkPremiumStatus = (user) => {
-  if (user.id === ADMIN_ID || user.email === "seu-email-admin@exemplo.com") {
-    return true;
-  }
-  return user.isPremium || false;
-};
-
-// Nova regra: aulas <= 20 são gratuitas
 export const isLessonFree = (lessonId) => {
+  // Módulos 1 e 2 (IDs de aula 1 a 20)
   return lessonId <= 20;
 };
 
-export const generatePremiumCode = () => {
-  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const numbers = "0123456789";
-  let code = "";
-  for (let i = 0; i < 4; i++) code += numbers.charAt(Math.floor(Math.random() * numbers.length));
-  for (let i = 0; i < 4; i++) code += letters.charAt(Math.floor(Math.random() * letters.length));
-  return code; // Ex: 1234ABCD
+export const checkPremiumStatus = async (email) => {
+  if (!email) return { data: false };
+
+  // Verifica se o usuário tem uma transação registrada
+  const { data, error } = await supabase
+    .from("transacoes_premium")
+    .select("*")
+    .eq("email_usuario", email);
+
+  // Se houver qualquer registro para este email, ele é Premium
+  if (data && data.length > 0) return { data: true };
+  
+  return { data: false };
 };

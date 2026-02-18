@@ -1,4 +1,3 @@
-cat <<'EOF' > src/Layout.jsx
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
@@ -125,4 +124,3 @@ export default function Layout({ children, currentPageName }) {
     </div>
   );
 }
-EOF

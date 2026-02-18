@@ -1,4 +1,3 @@
-cat <<'EOF' > src/pages/Progress.jsx
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
@@ -145,4 +144,3 @@ export default function Progress() {
     </div>
   );
 }
-EOF

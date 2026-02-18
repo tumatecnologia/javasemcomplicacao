@@ -2,26 +2,28 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { 
-  Coffee, BookOpen, ChevronRight, 
-  Lock, PlayCircle, CheckCircle
+  BookOpen, ChevronRight, 
+  Lock, PlayCircle
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export default function Inicio() {
   const [modulos, setModulos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  const [userName, setUserName] = useState("Estudante");
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
-      // 1. Verificar usuário
+      // 1. Verificar usuário e pegar o nome
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate("/Login");
         return;
       }
-      setUser(user);
+      
+      // Pega o nome do metadado (cadastrado no Login)
+      const nomeCadastrado = user.user_metadata?.display_name || "Estudante";
+      setUserName(nomeCadastrado);
 
       // 2. Buscar aulas e agrupar por módulo
       const { data: aulas, error } = await supabase
@@ -32,18 +34,18 @@ export default function Inicio() {
       if (error) {
         console.error("Erro ao buscar aulas:", error.message);
       } else {
-        // Agrupa as aulas por número de módulo para criar os "Cards"
         const agrupados = aulas.reduce((acc, aula) => {
-          if (!acc[aula.modulo]) {
-            acc[aula.modulo] = { 
-              numero: aula.modulo, 
+          const modNum = parseInt(aula.modulo);
+          if (!acc[modNum]) {
+            acc[modNum] = { 
+              numero: modNum, 
               totalAulas: 0, 
-              nome: `Módulo ${aula.modulo}`,
-              temGratis: false 
+              nome: `Módulo ${modNum}`,
+              // Apenas módulos 1 e 2 são considerados livres visualmente
+              isLocked: modNum > 2 
             };
           }
-          acc[aula.modulo].totalAulas += 1;
-          if (aula.is_free) acc[aula.modulo].temGratis = true;
+          acc[modNum].totalAulas += 1;
           return acc;
         }, {});
         
@@ -64,36 +66,36 @@ export default function Inicio() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header de Boas-vindas */}
-      <div className="bg-gradient-to-br from-orange-500 to-amber-500 rounded-3xl p-8 text-white shadow-lg shadow-orange-200">
-        <h1 className="text-3xl font-bold mb-2">Olá, Estudante! ☕</h1>
-        <p className="text-orange-100">Selecione um módulo abaixo para continuar seus estudos de Java.</p>
+    <div className="space-y-8 px-4">
+      {/* Header de Boas-vindas Personalizado */}
+      <div className="bg-gradient-to-br from-orange-600 to-amber-500 rounded-3xl p-8 text-white shadow-lg shadow-orange-200">
+        <h1 className="text-3xl font-bold mb-2 uppercase tracking-tight">Olá, {userName}! ☕</h1>
+        <p className="text-orange-100 font-medium">Continue sua jornada para dominar o Java.</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {modulos.map((mod) => (
           <div 
             key={mod.numero}
-            onClick={() => navigate(`/Curso?modulo=${mod.numero}`)}
+            onClick={() => navigate(`/Curso/${mod.numero === 1 ? '1' : mod.numero === 2 ? '11' : '21'}`)} 
             className="group cursor-pointer rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-orange-300 hover:shadow-md"
           >
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-orange-50 text-orange-600 group-hover:bg-orange-500 group-hover:text-white transition-all">
-              <BookOpen className="h-6 w-6" />
+            <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl transition-all ${mod.isLocked ? 'bg-slate-100 text-slate-400' : 'bg-orange-50 text-orange-600 group-hover:bg-orange-500 group-hover:text-white'}`}>
+              {mod.isLocked ? <Lock className="h-6 w-6" /> : <BookOpen className="h-6 w-6" />}
             </div>
             
             <h3 className="mb-1 text-xl font-bold text-slate-800">{mod.nome}</h3>
             <p className="text-sm text-slate-500 mb-4">{mod.totalAulas} aulas disponíveis</p>
             
             <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-orange-600">
-                {mod.temGratis ? (
+              <span className={`flex items-center gap-1.5 text-xs font-bold uppercase ${mod.isLocked ? 'text-slate-400' : 'text-green-600'}`}>
+                {!mod.isLocked ? (
                   <><PlayCircle className="w-4 h-4" /> Conteúdo Liberado</>
                 ) : (
-                  <><Lock className="w-4 h-4 text-slate-400" /> <span className="text-slate-400">Premium</span></>
+                  <><Lock className="w-4 h-4" /> Premium</>
                 )}
               </span>
-              <ChevronRight className="h-5 w-5 text-slate-300 group-hover:text-orange-500 group-hover:translate-x-1 transition-all" />
+              <ChevronRight className={`h-5 w-5 transition-all ${mod.isLocked ? 'text-slate-300' : 'text-slate-300 group-hover:text-orange-500 group-hover:translate-x-1'}`} />
             </div>
           </div>
         ))}
