@@ -3,13 +3,14 @@ import { cva } from "class-variance-authority";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ToastProvider = ({ children }) => (
+// 1. Exportação do Provider corrigida
+export const ToastProvider = ({ children }) => (
   <div className="fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]">
     {children}
   </div>
 );
 
-const ToastViewport = React.forwardRef(({ className, ...props }, ref) => (
+export const ToastViewport = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
@@ -36,7 +37,20 @@ const toastVariants = cva(
   }
 );
 
-const Toast = React.forwardRef(({ className, variant, ...props }, ref) => {
+// 2. Componente Toast com o temporizador para sumir
+export const Toast = React.forwardRef(({ className, variant, ...props }, ref) => {
+  const [visible, setVisible] = React.useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisible(false);
+    }, 3000); // 3 segundos
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!visible) return null;
+
   return (
     <div
       ref={ref}
@@ -47,7 +61,7 @@ const Toast = React.forwardRef(({ className, variant, ...props }, ref) => {
 });
 Toast.displayName = "Toast";
 
-const ToastAction = React.forwardRef(({ className, ...props }, ref) => (
+export const ToastAction = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
@@ -59,7 +73,7 @@ const ToastAction = React.forwardRef(({ className, ...props }, ref) => (
 ));
 ToastAction.displayName = "ToastAction";
 
-const ToastClose = React.forwardRef(({ className, ...props }, ref) => (
+export const ToastClose = React.forwardRef(({ className, ...props }, ref) => (
   <button
     ref={ref}
     className={cn(
@@ -73,22 +87,12 @@ const ToastClose = React.forwardRef(({ className, ...props }, ref) => (
 ));
 ToastClose.displayName = "ToastClose";
 
-const ToastTitle = React.forwardRef(({ className, ...props }, ref) => (
+export const ToastTitle = React.forwardRef(({ className, ...props }, ref) => (
   <div ref={ref} className={cn("text-sm font-semibold", className)} {...props} />
 ));
 ToastTitle.displayName = "ToastTitle";
 
-const ToastDescription = React.forwardRef(({ className, ...props }, ref) => (
+export const ToastDescription = React.forwardRef(({ className, ...props }, ref) => (
   <div ref={ref} className={cn("text-sm opacity-90", className)} {...props} />
 ));
 ToastDescription.displayName = "ToastDescription";
-
-export {
-  ToastProvider,
-  ToastViewport,
-  Toast,
-  ToastTitle,
-  ToastDescription,
-  ToastClose,
-  ToastAction,
-};
